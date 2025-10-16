@@ -1,0 +1,5 @@
+{
+  "name": "TUM Master Credit Tracker",
+  "description": "Eine Webanwendung zur Verfolgung von ECTS-Punkten für den Masterstudiengang Informatik an der TU München, basierend auf den offiziellen Studienplänen. Fügen Sie Ihre Module hinzu, weisen Sie sie Fachgebieten zu und visualisieren Sie Ihren Fortschritt in Richtung Ihres Abschlusses.",
+  "requestFramePermissions": []
+}
