@@ -9,6 +9,8 @@ interface DashboardProps {
     totalGoal: number;
     creditSummary: CreditSummary;
     specialization: string | null;
+    useOverflowForProfile: boolean;
+    onToggleOverflowForProfile: () => void;
 }
 
 const InfoIcon: React.FC = () => (
@@ -17,11 +19,18 @@ const InfoIcon: React.FC = () => (
     </svg>
 );
 
-const Dashboard: React.FC<DashboardProps> = ({ totalCredits, totalGoal, creditSummary, specialization }) => {
+const Dashboard: React.FC<DashboardProps> = ({ 
+    totalCredits, 
+    totalGoal, 
+    creditSummary, 
+    specialization,
+    useOverflowForProfile,
+    onToggleOverflowForProfile 
+}) => {
 
     const sortedInformaticsAreas = useMemo(() => {
         return Object.entries(creditSummary.byInformaticsArea)
-            .sort((a, b) => b[1] - a[1]);
+            .sort((a, b) => (b[1] as number) - (a[1] as number));
     }, [creditSummary.byInformaticsArea]);
 
     const creditsInSpecialization = specialization ? (creditSummary.byInformaticsArea[specialization] || 0) : 0;
@@ -41,6 +50,10 @@ const Dashboard: React.FC<DashboardProps> = ({ totalCredits, totalGoal, creditSu
 
     const totalInformaticsCredits = (creditSummary.byCategory[AreaCategory.INFORMATICS] || 0) + (creditSummary.byCategory[AreaCategory.PROFILE_BUILDING] || 0);
     const theoreticalCredits = creditSummary.theoreticalCredits || 0;
+    
+    // Calculate how many overflow credits are used for profile building (max 10)
+    const overflowCreditsForProfile = useOverflowForProfile ? Math.min(creditSummary.overflowCredits, 10) : 0;
+    const adjustedProfileCredits = (creditSummary.byCategory[AreaCategory.PROFILE_BUILDING] || 0) + overflowCreditsForProfile;
 
     const orderedCategories = [
         AreaCategory.SEMINAR,
@@ -87,7 +100,7 @@ const Dashboard: React.FC<DashboardProps> = ({ totalCredits, totalGoal, creditSu
                 <ProgressCard
                     key={AreaCategory.PROFILE_BUILDING}
                     title={AreaCategory.PROFILE_BUILDING}
-                    currentValue={creditSummary.byCategory[AreaCategory.PROFILE_BUILDING] || 0}
+                    currentValue={adjustedProfileCredits}
                     goalValue={CATEGORY_GOALS[AreaCategory.PROFILE_BUILDING]}
                 />
                  <ProgressCard
@@ -98,10 +111,36 @@ const Dashboard: React.FC<DashboardProps> = ({ totalCredits, totalGoal, creditSu
                 <ProgressCard
                     key={AreaCategory.INFORMATICS}
                     title={AreaCategory.INFORMATICS}
-                    currentValue={totalInformaticsCredits}
+                    currentValue={creditSummary.byCategory[AreaCategory.INFORMATICS] || 0}
                     goalValue={CATEGORY_GOALS[AreaCategory.INFORMATICS]}
                 />
             </div>
+            
+            {/* Gray separator line before overflow credits */}
+            {creditSummary.overflowCredits > 0 && (
+                <div className="border-t-2 border-gray-300 pt-6">
+                    <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
+                        <div className="flex justify-between items-center mb-3">
+                            <h3 className="text-lg font-semibold text-gray-700">Überflüssige Credits</h3>
+                            <span className="font-bold text-gray-600">{creditSummary.overflowCredits} ECTS</span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-3">
+                            Credits über die 43 ECTS Grenze für Informatik Wahlmodule hinaus.
+                        </p>
+                        <label className="flex items-center space-x-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={useOverflowForProfile}
+                                onChange={onToggleOverflowForProfile}
+                                className="w-5 h-5 text-tum-blue rounded focus:ring-tum-blue focus:ring-2"
+                            />
+                            <span className="text-sm text-gray-700">
+                                Bis zu 10 Credits als Profilbildung verwenden {overflowCreditsForProfile > 0 && `(${overflowCreditsForProfile} ECTS werden verwendet)`}
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            )}
             
             {sortedInformaticsAreas.length > 0 && (
                  <div>

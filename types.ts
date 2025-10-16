@@ -30,4 +30,5 @@ export interface CreditSummary {
     byCategory: Partial<Record<AreaCategory, number>>;
     byInformaticsArea: Record<string, number>;
     theoreticalCredits: number;
+    overflowCredits: number;
 }

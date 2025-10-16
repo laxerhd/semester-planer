@@ -4,7 +4,7 @@ import { AreaCategory } from './types';
 export const TOTAL_CREDITS_GOAL: number = 120;
 
 export const CATEGORY_GOALS: Record<AreaCategory, number> = {
-    [AreaCategory.INFORMATICS]: 53,
+    [AreaCategory.INFORMATICS]: 43,
     [AreaCategory.PROFILE_BUILDING]: 10,
     [AreaCategory.SOFT_SKILLS]: 6,
     [AreaCategory.INTERDISCIPLINARY_PROJECT]: 16,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Module } from './types';
 import { AreaCategory } from './types';
-import { ALL_SUBJECT_AREAS, TOTAL_CREDITS_GOAL } from './constants';
+import { ALL_SUBJECT_AREAS, TOTAL_CREDITS_GOAL, CATEGORY_GOALS } from './constants';
 import Header from './components/Header';
 import ModuleForm from './components/ModuleForm';
 import ModuleList from './components/ModuleList';
@@ -34,6 +34,15 @@ const App: React.FC = () => {
 
     const [view, setView] = useState<View>('planner');
     const [editingModule, setEditingModule] = useState<Module | null>(null);
+    const [useOverflowForProfile, setUseOverflowForProfile] = useState<boolean>(() => {
+        try {
+            const saved = localStorage.getItem('tum_useOverflowForProfile');
+            return saved ? JSON.parse(saved) : false;
+        } catch (error) {
+            console.error("Could not parse useOverflowForProfile from localStorage", error);
+            return false;
+        }
+    });
 
     // Automatisch im localStorage speichern bei Änderungen
     useEffect(() => {
@@ -51,6 +60,14 @@ const App: React.FC = () => {
             console.error("Could not save semesters to localStorage", error);
         }
     }, [semesters]);
+    
+    useEffect(() => {
+        try {
+            localStorage.setItem('tum_useOverflowForProfile', JSON.stringify(useOverflowForProfile));
+        } catch (error) {
+            console.error("Could not save useOverflowForProfile to localStorage", error);
+        }
+    }, [useOverflowForProfile]);
 
 
     const addModule = (module: Omit<Module, 'id'>) => {
@@ -97,32 +114,53 @@ const App: React.FC = () => {
     };
 
     const creditSummary = useMemo(() => {
-        return modules.reduce((summary, module) => {
+        const summary = modules.reduce((acc, module) => {
             // Verwende customCategory wenn vorhanden (für "Anderes"), sonst die normale Kategorie
             const category = module.customCategory || 
                             ALL_SUBJECT_AREAS.find(area => area.name === module.area)?.category || 
                             AreaCategory.MISC;
-            summary.total += module.credits;
-            summary.byCategory[category] = (summary.byCategory[category] || 0) + module.credits;
+            
+            acc.byCategory[category] = (acc.byCategory[category] || 0) + module.credits;
             
             if(category === AreaCategory.INFORMATICS) {
                 // Verwende customInformaticsArea wenn vorhanden, sonst das normale area
                 const informaticsArea = module.customInformaticsArea || module.area;
-                summary.byInformaticsArea[informaticsArea] = (summary.byInformaticsArea[informaticsArea] || 0) + module.credits;
+                acc.byInformaticsArea[informaticsArea] = (acc.byInformaticsArea[informaticsArea] || 0) + module.credits;
             }
             
             if (module.isTheoretical) {
-                summary.theoreticalCredits += module.credits;
+                acc.theoreticalCredits += module.credits;
             }
 
-            return summary;
+            return acc;
         }, {
             total: 0,
             byCategory: {} as Record<AreaCategory, number>,
             byInformaticsArea: {} as Record<string, number>,
             theoreticalCredits: 0,
+            overflowCredits: 0,
         });
+        
+        // Calculate overflow credits (Informatik credits > 43)
+        const informaticsCredits = summary.byCategory[AreaCategory.INFORMATICS] || 0;
+        const overflowCredits = Math.max(0, informaticsCredits - CATEGORY_GOALS[AreaCategory.INFORMATICS]);
+        summary.overflowCredits = overflowCredits;
+        
+        // Calculate total credits: all categories but only count Informatik up to 43 (the rest are overflow)
+        summary.total = Object.entries(summary.byCategory).reduce((total, [cat, credits]) => {
+            if (cat === AreaCategory.INFORMATICS) {
+                // Only count up to 43 credits for Informatik
+                return total + Math.min(credits as number, CATEGORY_GOALS[AreaCategory.INFORMATICS]);
+            }
+            return total + (credits as number);
+        }, 0);
+        
+        return summary;
     }, [modules]);
+    
+    // Add overflow credits to total if they are used for profile building
+    const overflowCreditsForProfile = useOverflowForProfile ? Math.min(creditSummary.overflowCredits, 10) : 0;
+    const adjustedTotalCredits = creditSummary.total + overflowCreditsForProfile;
 
     const autoSpecialization = useMemo(() => {
         const informaticsAreas = creditSummary.byInformaticsArea;
@@ -252,10 +290,12 @@ const App: React.FC = () => {
                         <div className="lg:col-span-1 order-1 lg:order-2">
                              <h2 className="text-2xl font-bold text-tum-blue-dark mb-4">Fortschrittsübersicht</h2>
                             <Dashboard 
-                                totalCredits={creditSummary.total} 
+                                totalCredits={adjustedTotalCredits} 
                                 totalGoal={TOTAL_CREDITS_GOAL}
                                 creditSummary={creditSummary}
                                 specialization={autoSpecialization}
+                                useOverflowForProfile={useOverflowForProfile}
+                                onToggleOverflowForProfile={() => setUseOverflowForProfile(!useOverflowForProfile)}
                             />
                         </div>
                     </div>
