@@ -146,13 +146,19 @@ const App: React.FC = () => {
         const overflowCredits = Math.max(0, informaticsCredits - CATEGORY_GOALS[AreaCategory.INFORMATICS]);
         summary.overflowCredits = overflowCredits;
         
-        // Calculate total credits: all categories but only count Informatik up to 43 (the rest are overflow)
+        // Calculate total credits: for each category, only count up to the goal (max ECTS)
+        // This ensures that excess credits in any category don't inflate the total
         summary.total = Object.entries(summary.byCategory).reduce((total, [cat, credits]) => {
-            if (cat === AreaCategory.INFORMATICS) {
-                // Only count up to 43 credits for Informatik
-                return total + Math.min(credits as number, CATEGORY_GOALS[AreaCategory.INFORMATICS]);
+            const category = cat as AreaCategory;
+            const categoryGoal = CATEGORY_GOALS[category];
+            
+            // For each category, only count up to the goal
+            // Exception: MISC has no goal (0), so count all credits
+            if (categoryGoal === 0) {
+                return total + (credits as number);
             }
-            return total + (credits as number);
+            
+            return total + Math.min(credits as number, categoryGoal);
         }, 0);
         
         return summary;
