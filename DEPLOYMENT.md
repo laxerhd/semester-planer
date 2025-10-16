@@ -17,7 +17,7 @@ This method automatically deploys your site whenever you push to the `main` bran
 #### Setup Steps:
 
 1. **Enable GitHub Pages with GitHub Actions:**
-   - Go to your GitHub repository: https://github.com/laxerhd/master-planer
+   - Go to your GitHub repository: https://github.com/laxerhd/semester-planer
    - Click on "Settings" (top menu)
    - Click on "Pages" in the left sidebar
    - Under "Build and deployment":
@@ -40,7 +40,7 @@ This method automatically deploys your site whenever you push to the `main` bran
 4. **Access Your Site:**
    - Once deployed, your site will be available at:
      ```
-     https://laxerhd.github.io/master-planer/
+     https://laxerhd.github.io/semester-planer/
      ```
 
 #### How It Works:
@@ -77,7 +77,7 @@ If you prefer to deploy manually:
 ### Site Not Loading Correctly
 
 If your site loads but assets are not found:
-- Check that `base: '/master-planer/'` is set in `vite.config.ts`
+- Check that `base: '/semester-planer/'` is set in `vite.config.ts`
 - Verify the repository name matches the base path
 
 ### Deployment Failed
@@ -98,7 +98,7 @@ If you rename your repository:
 
 ### vite.config.ts
 ```typescript
-base: '/master-planer/', // Must match repository name
+base: '/semester-planer/', // Must match repository name
 ```
 
 ### package.json
@@ -120,7 +120,7 @@ npm run build
 npm run preview
 ```
 
-Then visit: http://localhost:4173/master-planer/
+Then visit: http://localhost:4173/semester-planer/
 
 ## Notes
 
