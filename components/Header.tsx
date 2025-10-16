@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { FaGithub } from 'react-icons/fa';
 
 const TUMLogo: React.FC = () => (
     <svg width="60" height="30" viewBox="0 0 100 50" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -58,6 +59,15 @@ const Header: React.FC<HeaderProps> = ({ onExport, onImport }) => {
                             Importieren
                         </button>
                     )}
+                    <a
+                        href="https://github.com/laxerhd/semester-planer"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-white hover:text-gray-200 transition-colors"
+                        title="GitHub Repository"
+                    >
+                        <FaGithub size={24} />
+                    </a>
                     <div className="text-white text-sm hidden md:block">
                         Für Master Informatik @ TUM
                     </div>
