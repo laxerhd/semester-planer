@@ -21,10 +21,13 @@ const SemesterManager: React.FC<SemesterManagerProps> = ({ semesters, onAddSemes
 
     const handleAdd = (e: React.FormEvent) => {
         e.preventDefault();
-        if (newSemester.trim()) {
-            onAddSemester(newSemester);
-            setNewSemester('');
+
+        if (false == !!newSemester.trim()) {
+            return;
         }
+
+        onAddSemester(newSemester);
+        setNewSemester('');
 
         toast({
             title: "Erfolg!🚀",
