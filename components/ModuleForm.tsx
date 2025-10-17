@@ -23,6 +23,16 @@ const getLastPickedArea = () => {
     return savedSemesters ? savedSemesters : ALL_SUBJECT_AREAS[0].name;
 };
 
+const getLastIsTheoretical = () => {
+    try {
+        const isTheoretical = localStorage.getItem(LOCAL_STORAGE_KEYS.LAST_IS_THEORETICAL);
+        return JSON.parse(isTheoretical);
+    } catch (e) {
+        console.error("Could not parse last value of isTheoretical ", e);
+        return false;
+    }
+};
+
 const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, editingModule, onCancelEdit, semesters }) => {
 
     const { toast } = useToaster();
@@ -44,6 +54,11 @@ const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, ed
 
     const [semester, setSemester] = useState('');
     const [isTheoretical, setIsTheoretical] = useState(false);
+    const isTheoreticalChangeHandler = (isTheoretical: boolean) => {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_IS_THEORETICAL, JSON.stringify(isTheoretical));
+        setIsTheoretical(isTheoretical);
+    };
+
     const [customAreaDescription, setCustomAreaDescription] = useState('');
     const [customCategory, setCustomCategory] = useState<AreaCategory>(AreaCategory.INFORMATICS);
     const [customInformaticsArea, setCustomInformaticsArea] = useState('');
@@ -64,7 +79,7 @@ const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, ed
             setCredits('');
             setArea(getLastPickedArea());
             setSemester(semesters.length > 0 ? semesters[0] : '');
-            setIsTheoretical(false);
+            setIsTheoretical(getLastIsTheoretical());
             setCustomAreaDescription('');
             setCustomCategory(AreaCategory.INFORMATICS);
             setCustomInformaticsArea('');
@@ -94,7 +109,7 @@ const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, ed
 
     useEffect(() => {
         if (!isCurrentAreaInformatics) {
-            setIsTheoretical(false);
+            isTheoreticalChangeHandler(false);
         }
     }, [isCurrentAreaInformatics]);
 
@@ -134,7 +149,7 @@ const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, ed
         setName('');
         setCredits('');
         setArea(getLastPickedArea());
-        setIsTheoretical(false);
+        setIsTheoretical(getLastIsTheoretical());
         setCustomAreaDescription('');
         setCustomCategory(AreaCategory.INFORMATICS);
         setCustomInformaticsArea('');
@@ -152,7 +167,7 @@ const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, ed
         setName('');
         setCredits('');
         setArea(getLastPickedArea());
-        setIsTheoretical(false);
+        setIsTheoretical(getLastIsTheoretical());
         setCustomAreaDescription('');
         setCustomCategory(AreaCategory.INFORMATICS);
         setCustomInformaticsArea('');
@@ -222,7 +237,7 @@ const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, ed
                                     name="is-theoretical"
                                     type="checkbox"
                                     checked={isTheoretical}
-                                    onChange={(e) => setIsTheoretical(e.target.checked)}
+                                    onChange={(e) => isTheoreticalChangeHandler(e.target.checked)}
                                     className="focus:ring-tum-blue h-4 w-4 text-tum-blue border-gray-300 rounded"
                                 />
                             </div>

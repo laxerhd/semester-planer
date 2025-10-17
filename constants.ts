@@ -4,6 +4,7 @@ import { AreaCategory } from './types';
 // Enum capturing all keys used for local storage.
 export enum LOCAL_STORAGE_KEYS {
     LAST_AREA = "ls_last_area",
+    LAST_IS_THEORETICAL = "ls_last_is_theoretical",
 }
 
 export const TOTAL_CREDITS_GOAL: number = 120;
