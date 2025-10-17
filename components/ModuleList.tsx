@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import type { Module } from '../types';
 import { ALL_SUBJECT_AREAS } from '../constants';
+import * as _ from 'lodash';
 
 interface ModuleListProps {
     modules: Module[];
@@ -36,7 +37,7 @@ const ModuleTable: React.FC<{ modules: Module[], onDeleteModule: (id: string) =>
                         <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             ECTS
                         </th>
-                         <th scope="col" className="relative px-6 py-3">
+                        <th scope="col" className="relative px-6 py-3">
                             <span className="sr-only">Aktionen</span>
                         </th>
                     </tr>
@@ -72,21 +73,21 @@ const ModuleTable: React.FC<{ modules: Module[], onDeleteModule: (id: string) =>
                                         {module.credits}
                                     </span>
                                 </td>
-                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div className="flex items-center justify-end space-x-2">
-                                        <button 
-                                            onClick={() => onEditModule(module)} 
+                                        <button
+                                            onClick={() => onEditModule(module)}
                                             className="text-tum-blue hover:text-tum-blue-dark transition-colors p-2 rounded-full hover:bg-blue-100"
                                             aria-label={`Bearbeite Modul ${module.name}`}
                                         >
-                                            <EditIcon/>
+                                            <EditIcon />
                                         </button>
-                                        <button 
-                                            onClick={() => onDeleteModule(module.id)} 
+                                        <button
+                                            onClick={() => onDeleteModule(module.id)}
                                             className="text-red-500 hover:text-red-700 transition-colors p-2 rounded-full hover:bg-red-100"
                                             aria-label={`Lösche Modul ${module.name}`}
                                         >
-                                            <TrashIcon/>
+                                            <TrashIcon />
                                         </button>
                                     </div>
                                 </td>
@@ -101,7 +102,7 @@ const ModuleTable: React.FC<{ modules: Module[], onDeleteModule: (id: string) =>
 
 
 const ModuleList: React.FC<ModuleListProps> = ({ modules, onDeleteModule, onEditModule, semesters }) => {
-    
+
     const modulesBySemester = useMemo(() => {
         return modules.reduce((acc, module) => {
             const { semester } = module;
@@ -112,11 +113,11 @@ const ModuleList: React.FC<ModuleListProps> = ({ modules, onDeleteModule, onEdit
             return acc;
         }, {} as Record<string, Module[]>);
     }, [modules]);
-    
+
     const sortedSemesters = useMemo(() => {
         return semesters.filter(s => modulesBySemester[s]?.length > 0);
     }, [semesters, modulesBySemester]);
-    
+
     if (modules.length === 0) {
         return (
             <div className="text-center p-10 bg-white rounded-lg shadow-md">
@@ -125,14 +126,19 @@ const ModuleList: React.FC<ModuleListProps> = ({ modules, onDeleteModule, onEdit
             </div>
         );
     }
-    
+
     return (
         <div className="space-y-8">
             <h2 className="text-2xl font-bold text-tum-blue-dark mb-4">Meine Module</h2>
-            {sortedSemesters.map(semester => {
+            {sortedSemesters.map((semester: string) => {
                 const semesterModules = modulesBySemester[semester];
-                const semesterTotalCredits = semesterModules.reduce((sum, m) => sum + m.credits, 0);
-                
+                const semesterTotalCredits = semesterModules.reduce((sum: number, m: Module) => sum + m.credits, 0);
+
+                // Reverse the list of modules to show the last one added at the top.
+                const cloned = _.cloneDeep(semesterModules);
+                const reversed = _.reverse(cloned);
+
+
                 return (
                     <div key={semester}>
                         <div className="flex justify-between items-baseline mb-3">
@@ -141,7 +147,7 @@ const ModuleList: React.FC<ModuleListProps> = ({ modules, onDeleteModule, onEdit
                                 Gesamt: <span className="text-tum-blue-dark font-bold text-base">{semesterTotalCredits} ECTS</span>
                             </span>
                         </div>
-                        <ModuleTable modules={semesterModules} onDeleteModule={onDeleteModule} onEditModule={onEditModule} />
+                        <ModuleTable modules={reversed} onDeleteModule={onDeleteModule} onEditModule={onEditModule} />
                     </div>
                 );
             })}

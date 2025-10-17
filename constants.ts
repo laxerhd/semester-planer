@@ -1,6 +1,11 @@
 import type { SubjectArea } from './types';
 import { AreaCategory } from './types';
 
+// Enum capturing all keys used for local storage.
+export enum LOCAL_STORAGE_KEYS {
+    LAST_AREA = "ls_last_area",
+}
+
 export const TOTAL_CREDITS_GOAL: number = 120;
 
 export const CATEGORY_GOALS: Record<AreaCategory, number> = {

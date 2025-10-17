@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Module } from '../types';
-import { ALL_SUBJECT_AREAS, INFORMATICS_ONLY_AREAS } from '../constants';
+import { ALL_SUBJECT_AREAS, INFORMATICS_ONLY_AREAS, LOCAL_STORAGE_KEYS } from '../constants';
 import { AreaCategory } from '../types';
+import { TOASTER_VARIANTS, useToaster } from './Toaster';
 
 const EditIcon: React.FC = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-tum-blue" viewBox="0 0 20 20" fill="currentColor">
@@ -17,10 +18,30 @@ interface ModuleFormProps {
     semesters: string[];
 }
 
+const getLastPickedArea = () => {
+    const savedSemesters = localStorage.getItem(LOCAL_STORAGE_KEYS.LAST_AREA);
+    return savedSemesters ? savedSemesters : ALL_SUBJECT_AREAS[0].name;
+};
+
 const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, editingModule, onCancelEdit, semesters }) => {
+
+    const { toast } = useToaster();
+
     const [name, setName] = useState('');
+    const nameChangeHandler = (name: string) => {
+        name.trim()
+        setName(name);
+    };
+
     const [credits, setCredits] = useState('');
-    const [area, setArea] = useState(ALL_SUBJECT_AREAS[0].name);
+
+    const [area, setArea] = useState(getLastPickedArea());
+    const areaChangeHandler = (area: string) => {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_AREA, area);
+        setArea(area);
+    };
+
+
     const [semester, setSemester] = useState('');
     const [isTheoretical, setIsTheoretical] = useState(false);
     const [customAreaDescription, setCustomAreaDescription] = useState('');
@@ -41,7 +62,7 @@ const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, ed
             // Formular zurücksetzen wenn kein editingModule
             setName('');
             setCredits('');
-            setArea(ALL_SUBJECT_AREAS[0].name);
+            setArea(getLastPickedArea());
             setSemester(semesters.length > 0 ? semesters[0] : '');
             setIsTheoretical(false);
             setCustomAreaDescription('');
@@ -88,17 +109,19 @@ const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, ed
             alert('Bitte wählen Sie ein Semester aus. Fügen Sie zuerst eines hinzu, falls die Liste leer ist.');
             return;
         }
-        
-        const moduleData = { 
-            name, 
-            credits: creditValue, 
-            area, 
-            semester, 
+
+        const moduleData = {
+            name,
+            credits: creditValue,
+            area,
+            semester,
             isTheoretical,
             ...(isCustomArea && { customCategory }), // Nur hinzufügen wenn "Anderes" gewählt
             ...(isCustomInformaticsCategory && customInformaticsArea && { customInformaticsArea }) // Informatik-Fachgebiet
         };
-        
+
+        localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_AREA, area);
+
         if (editingModule && onUpdateModule) {
             // Update existierendes Modul
             onUpdateModule({ ...editingModule, ...moduleData });
@@ -106,21 +129,29 @@ const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, ed
             // Neues Modul hinzufügen
             onAddModule(moduleData);
         }
-        
+
         // Formular zurücksetzen
         setName('');
         setCredits('');
-        setArea(ALL_SUBJECT_AREAS[0].name);
+        setArea(getLastPickedArea());
         setIsTheoretical(false);
         setCustomAreaDescription('');
         setCustomCategory(AreaCategory.INFORMATICS);
         setCustomInformaticsArea('');
+
+        toast({
+            title: "Erfolg!🚀",
+            message: "Dein Module wurde hinzugefügt.",
+            variant: TOASTER_VARIANTS.SUCCESS,
+            duration: 2000,
+        })
+
     };
 
     const handleCancel = () => {
         setName('');
         setCredits('');
-        setArea(ALL_SUBJECT_AREAS[0].name);
+        setArea(getLastPickedArea());
         setIsTheoretical(false);
         setCustomAreaDescription('');
         setCustomCategory(AreaCategory.INFORMATICS);
@@ -158,7 +189,7 @@ const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, ed
                             type="text"
                             id="module-name"
                             value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            onChange={(e) => nameChangeHandler(e.target.value)}
                             placeholder="z.B. Advanced Deep Learning"
                             className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-tum-blue focus:border-tum-blue disabled:bg-gray-100"
                             required
@@ -212,7 +243,7 @@ const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, ed
                         <select
                             id="module-area"
                             value={area}
-                            onChange={(e) => setArea(e.target.value)}
+                            onChange={(e) => areaChangeHandler(e.target.value)}
                             className="mt-1 block w-full pl-3 pr-10 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-tum-blue focus:border-tum-blue sm:text-sm disabled:bg-gray-100"
                         >
                             {ALL_SUBJECT_AREAS.map(subjectArea => (
@@ -268,7 +299,7 @@ const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, ed
                                 Wählen Sie aus, wo diese Credits angerechnet werden sollen.
                             </p>
                         </div>
-                        
+
                         {isCustomInformaticsCategory && (
                             <div>
                                 <label htmlFor="custom-informatics-area" className="block text-sm font-medium text-gray-700">
@@ -292,7 +323,7 @@ const ModuleForm: React.FC<ModuleFormProps> = ({ onAddModule, onUpdateModule, ed
                                 </p>
                             </div>
                         )}
-                        
+
                         <div>
                             <label htmlFor="custom-area-description" className="block text-sm font-medium text-gray-700">
                                 Beschreibung (optional)

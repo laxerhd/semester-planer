@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { TOASTER_VARIANTS, useToaster } from './Toaster';
 
 interface SemesterManagerProps {
     semesters: string[];
@@ -16,12 +17,21 @@ const TrashIcon: React.FC = () => (
 const SemesterManager: React.FC<SemesterManagerProps> = ({ semesters, onAddSemester, onDeleteSemester }) => {
     const [newSemester, setNewSemester] = useState('');
 
+    const { toast } = useToaster();
+
     const handleAdd = (e: React.FormEvent) => {
         e.preventDefault();
         if (newSemester.trim()) {
             onAddSemester(newSemester);
             setNewSemester('');
         }
+
+        toast({
+            title: "Erfolg!🚀",
+            message: "Dein Semester wurde hinzugefügt.",
+            variant: TOASTER_VARIANTS.SUCCESS,
+            duration: 2000,
+        })
     };
 
     return (
